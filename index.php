@@ -1,8 +1,9 @@
 <?php
 // Сохранение текущей даты в сессии
 session_start();
-// unset($_SESSION['current_date']);
+require_once "config.php";
 require_once "functions.php";
+
 
 // Установка даты по умолчанию (если в сессии ничего нет)
 if (!isset($_SESSION['current_date'])) {
@@ -12,58 +13,43 @@ if (!isset($_SESSION['current_date'])) {
 // Если в GET передан конкретный параметр date в формате Y-m-d
 if (isset($_GET['date']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['date'])) {
     $_SESSION['current_date'] = $_GET['date'];
-} elseif (!isset($_SESSION['current_date'])) {
-    $_SESSION['current_date'] = date('Y-m-d');
 }
 
 $currentDate = $_SESSION['current_date'];
 
-$todoFile = 'tasks.json';
+// Получаем все задачи
+$tasks = getTasks(TODO_FILE);
+// Массив для хранения ошибок
 $errors = [];
-// Чтение файла
-try {
-    if (!file_exists($todoFile)){
-        throw new Exception('Невозможно прочитать задачи из файла');
-    }
-    $fileData = file_get_contents($todoFile);
-    $tasks = json_decode($fileData, true);
-
-    // dump($filteredTasks);
-} catch (Exception $th) {
-    $errors[] = $th;
-}
 
 // Обработка Post обработка кнопки удалить
-if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'])){
-    $id = $_POST['delete'] ?? '';
-    
-    foreach($tasks as $key => $task){
-        if ($task['id'] == $id){
-            unset($tasks[$key]);
-            break;
-        }
-    }
-    $jsonData = json_encode($tasks, JSON_PRETTY_PRINT |  JSON_UNESCAPED_UNICODE);
-    file_put_contents($todoFile, $jsonData);
-}
+if($_SERVER['REQUEST_METHOD'] === 'POST'){
+    if (isset($_POST['delete'])){
+        $id = $_POST['delete'];
 
-// Обработка Post обработка кнопки выполнить
-if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['done'])){
-    $id = $_POST['done'] ?? '';
-    
-    foreach($tasks as $key => $task){
-        if ($task['id'] == $id){
-            $tasks[$key]['is_done'] = !$tasks[$key]['is_done'] ;
-            break;
+        foreach($tasks as $key => $task){
+            if ($task['id'] == $id){
+                unset($tasks[$key]);
+                break;
+            }
         }
-    }
-    $jsonData = json_encode($tasks, JSON_PRETTY_PRINT |  JSON_UNESCAPED_UNICODE);
-    file_put_contents($todoFile, $jsonData);
-}
+        saveTasks(TODO_FILE, $tasks, $currentDate);
 
-// Обработка Post добавление задачи
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_task'])){
-    if (!empty($_POST['text_task'])){
+    }
+
+    if (isset($_POST['done'])){
+        $id = $_POST['done'];
+
+        foreach($tasks as $key => $task){
+            if ($task['id'] == $id){
+                $tasks[$key]['is_done'] = !$tasks[$key]['is_done'] ;
+                break;
+            }
+        }
+        saveTasks(TODO_FILE, $tasks, $currentDate);
+    }
+
+    if (isset($_POST['add_task']) && !empty($_POST['text_task'])) {
         $textTask = $_POST['text_task'];
 
         $newTask = [
@@ -72,44 +58,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_task'])){
             'text' => $textTask,
             'is_done' => false
         ];
-
         $tasks[] = $newTask;
-        $jsonData = json_encode($tasks, JSON_PRETTY_PRINT |  JSON_UNESCAPED_UNICODE);
-        file_put_contents($todoFile, $jsonData);
-
-        // Редирект на ТУ ЖЕ дату
-        header('Location: ?date=' . $currentDate);
-        exit;
-    }else{
+        saveTasks(TODO_FILE, $tasks, $currentDate);
+    }elseif (isset($_POST['add_task'])) {
         $errors[] = 'Поле не может быть пустым';
     }
+
 }
 
-$filteredTasks = array_filter($tasks, function($task) use ($currentDate) {
-        return $task['current_date'] === $currentDate;
-});
+$filteredTasks = filterTasksByDate($tasks, $currentDate);
+
+require_once "header.php";
 ?>
 
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Список задач на <?= date('d-m-Y') ?></title>
-    <!-- <style>
-        body { font-family: Arial; margin: 20px; justify-items: center;}
-        .wrapper { width: 960px; background-color: #d6e7e6; }
-        .task { background: #e8f4f8; padding: 15px; margin: 15px 0; border-radius: 5px; max-width: 500px; }
-        .result { background: #d4edda; padding: 10px; margin: 10px 0; border-left: 4px solid #28a745; }
-        table { border-collapse: collapse; width: 100%; }
-        input[type=text]{ width: 250px; height: 25px;}
-        #add {width: 150px; height: 25px; border-radius: 10px; font-size: 16px; background-color: #5edb7d;}
-        h2 { color: #3d34c4; }
-        pre { background: #f4f4f4; padding: 10px; border-radius: 5px; }
-        li { margin-bottom: 25px; }
-    </style> -->
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
     <!-- Шапка с датой -->
 <div class="header">
     <h2>📋 Todo-list <?= date('d-m-Y', strtotime($currentDate)) ?> </h2>
@@ -160,4 +122,4 @@ $filteredTasks = array_filter($tasks, function($task) use ($currentDate) {
     </div>
 </div>
     
-</body>
+<?php require_once "footer.php"; ?>
