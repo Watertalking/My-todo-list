@@ -192,6 +192,17 @@
         box-shadow: 0 5px 15px rgba(198, 40, 40, 0.3);
     }
 
+    .task-item button[name="edit"]{
+        min-width: 25px;
+    }
+
+    .task-item button[name="edit"]:hover {
+        background-color: #1a91af;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(198, 40, 40, 0.3);
+    }
+
     .task-text {
         flex: 1;
         font-size: 1.1em;

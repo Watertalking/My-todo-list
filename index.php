@@ -112,6 +112,7 @@ require_once "header.php";
                         <span class="task-text <?= $task['is_done'] ? 'completed' : '' ?>">
                             <?= htmlspecialchars($task['text']) ?>
                         </span>
+                        <button class="edit" type="button" name="edit" title="Редактировать" data-task-id="<?= $task['id'] ?>">✏️</button>
                         <button type="submit" name="delete" value="<?= $task['id'] ?>" onclick="return confirm('Удалить задачу?')">
                             ✕ Удалить
                         </button>
