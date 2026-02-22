@@ -137,6 +137,7 @@
     .task-item {
         display: flex;
         align-items: center;
+        gap: 10px; /* Расстояние между элементами */
         padding: 15px 25px;
         border-bottom: 1px solid #e0e0e0;
         transition: background-color 0.3s;
@@ -153,7 +154,7 @@
     .task-item form {
         display: flex;
         align-items: center;
-        gap: 15px;
+        gap: 10px;
         width: 100%;
     }
 
@@ -215,6 +216,19 @@
         color: #999;
     }
 
+
+    .task-content {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-grow: 1; /* занимает доступное пространство */
+    }
+
+    .task-content .edit-input {
+        width: 100%;
+        min-width: 200px;
+    }
+
     /* Сообщение об ошибке */
     .error {
         background-color: #ffebee;
@@ -265,6 +279,34 @@
     .sidebar button:hover {
         transform: translateY(-2px);
     }
+
+    .edit-input {
+    /* Размеры и отступы как у обычного текста */
+        display: inline-block;
+        padding: 0;
+        margin: 0;
+        
+        /* Ширина */
+        width: 500px;
+        min-width: 500px;
+        
+        /* Границы и фон */
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: #fff;
+        
+        /* Текст */
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        color: inherit;
+        
+        /* Отступы внутри */
+        padding: 2px 4px;
+        
+        /* Вертикальное выравнивание */
+        vertical-align: middle;
+}
 
     /* Адаптивность */
     @media (max-width: 600px) {

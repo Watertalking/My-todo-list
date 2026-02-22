@@ -64,6 +64,30 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         $errors[] = 'Поле не может быть пустым';
     }
 
+    // Где-то в начале, после получения $tasks
+    if (isset($_POST['edit_task'])) {
+        $id = $_POST['task_id'];
+        $newText = $_POST['new_text'];
+        
+        // Найди задачу по id и обнови текст
+        foreach ($tasks as $key => $task) {
+            if ($task['id'] == $id) {
+                $tasks[$key]['text'] = $newText;
+                $updatedTask = $tasks[$key]; // сохраняем обновленную задачу
+                break;
+            }
+        }
+        
+        // Сохраняем обновленный массив
+        $jsonData = json_encode($tasks, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        file_put_contents(TODO_FILE, $jsonData);
+     
+            // Возвращаем клиенту JSON с обновленной задачей
+        header('Content-Type: application/json');
+        echo json_encode($updatedTask);
+        exit;
+    }
+
 }
 
 $filteredTasks = filterTasksByDate($tasks, $currentDate);
@@ -109,10 +133,12 @@ require_once "header.php";
                         <button type="submit" name="done" value="<?= $task['id'] ?>">
                             <?= $task['is_done'] ? '✓ Выполнено' : '○ Выполнить' ?>
                         </button>
-                        <span class="task-text <?= $task['is_done'] ? 'completed' : '' ?>">
+                        <div class="task-content">
+                            <span class="task-text <?= $task['is_done'] ? 'completed' : '' ?>">
                             <?= htmlspecialchars($task['text']) ?>
-                        </span>
-                        <button class="edit" type="button" name="edit" title="Редактировать" data-task-id="<?= $task['id'] ?>">✏️</button>
+                            </span>
+                            <button class="edit" type="button" name="edit" title="Редактировать" data-task-id="<?= $task['id'] ?>">✏️</button> 
+                        </div>
                         <button type="submit" name="delete" value="<?= $task['id'] ?>" onclick="return confirm('Удалить задачу?')">
                             ✕ Удалить
                         </button>
